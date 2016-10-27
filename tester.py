@@ -27,7 +27,6 @@ if __name__ == '__main__':
 
     # Intitialize a robot; robot receives info about maze dimensions.
     testrobot = Robot(testmaze.dim)
-    print testmaze
 
     # Record robot performance over two runs.
     runtimes = []

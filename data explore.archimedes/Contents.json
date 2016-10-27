@@ -1,0 +1,18 @@
+{
+  "sections" : [
+    {
+      "type" : "plain",
+      "contents" : "Capstone Project\n==================\nData exploration\n------------\n### Environment\n#### For start, what data we can see from the setting?\n* There are only four directions in the system, up, down, right, and left are represented by `up, down, right, left, u, d, r, l`\n* the maze is constructed by the `Maze` class, and we can only indirectly interact it with our robot\n* Our robot can only move forward towards the heading direction\n* Our robot can only turn $$ 90 $$ degrees either left or right of the heading direction.\n-----\n### Robot\n#### For a given maze, what data we can collect from our robot?\n\n* with `sense()` function, we can get a list with three integers `[a1, a2, a3]`, show the distance from the robot to walls at it's left, heading and right direction of the robot.\n* This is the only data we can get so far\n\n#### What inputs we can feed to our robot?\n* we can tell robot move forward, and we set unit to be 1\n* we can tell robot make turns\n\n---\nThese are the data we can get so far. Our goal is to enable our robot to explore the maze and find its way to the goal position.\n\nIn order to achieve that, our robot need to:\n\n- moves around maze without any collision\n- senses the wall as it moves and draw the map\n- find the goal position\n- find the shortest way to goal"
+    }
+  ],
+  "metadata" : {
+    "leftMargin" : 2,
+    "bottomMargin" : 2,
+    "rightMargin" : 2,
+    "indentStyle" : "tabs",
+    "pageNumberingEnabled" : false,
+    "indentWidth" : 4,
+    "topMargin" : 2,
+    "previewStyle" : "preview_modern"
+  }
+}
