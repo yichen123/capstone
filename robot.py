@@ -35,7 +35,9 @@ class Robot(object):
         the tester to end the run and return the robot to the start.
         '''
 
-        rotation = 0
-        movement = 0
+        rotation = -90
+        movement = 1
+
+        print sensors
 
         return rotation, movement
