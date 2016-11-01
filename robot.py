@@ -39,11 +39,10 @@ class Robot(object):
             location[1] = self.location[1]+ dir_move[dirs[i]][1] * (2 * sensors[i] + 1)
             # print dirs[i], sensors[i]
             # print location
-            print location, sensors[i], self.location, dirs[i]
+            #print location, sensors[i], self.location, dirs[i]
             self.map[location[1]][location[0]] = 1
 
     def get_map(self):
-        print 'aaa'
         for row in self.map:
             print row
 
@@ -76,7 +75,6 @@ class Robot(object):
         return heading
 
     def execute(self, rotation, movement):
-        print self.location
         self.heading = self.make_turn(rotation)
         for i in range(abs(movement)):
             if movement < 0:
@@ -86,7 +84,6 @@ class Robot(object):
                 self.make_move(1)
 
     def is_valid_move(self, move):
-        print self.location, self.heading, move
         if move < 0:
             heading = dir_reverse[self.heading]
         if move > 0:
@@ -123,10 +120,14 @@ class Robot(object):
         '''
 
         rotation = random.choice([-90, 0, 90])
+        #rotation = 0
         movement = 3
-
+        print 'location: ' +  str(self.location)
+        print 'heading: ' + self.heading
+        print sensors
         self.update_map(sensors)
-        self.execute(rotation, movement)
         print rotation, movement
+
+        self.execute(rotation, movement)
 
         return rotation, movement
