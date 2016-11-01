@@ -43,11 +43,11 @@ if __name__ == '__main__':
         while run_active:
             # check for end of time
             total_time += 1
+            print robot_pos
             if total_time > max_time:
                 run_active = False
                 print "Allotted time exceeded."
                 break
-            print robot_pos
             # provide robot with sensor information, get actions
             sensing = [testmaze.dist_to_wall(robot_pos['location'], heading)
                        for heading in dir_sensors[robot_pos['heading']]]
@@ -107,6 +107,7 @@ if __name__ == '__main__':
                     runtimes.append(total_time - sum(runtimes))
                     run_active = False
                     print "Goal found; run {} completed!".format(run)
+        testrobot.get_map()
 
     # Report score if robot is successful.
     if len(runtimes) == 2:
