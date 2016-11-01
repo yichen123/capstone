@@ -13,7 +13,7 @@ dir_reverse = {'u': 'd', 'r': 'l', 'd': 'u', 'l': 'r',
                'up': 'd', 'right': 'l', 'down': 'u', 'left': 'r'}
 
 # test and score parameters
-max_time = 10
+max_time = 3
 train_score_mult = 1/30.
 
 if __name__ == '__main__':
@@ -47,7 +47,7 @@ if __name__ == '__main__':
                 run_active = False
                 print "Allotted time exceeded."
                 break
-
+            print robot_pos
             # provide robot with sensor information, get actions
             sensing = [testmaze.dist_to_wall(robot_pos['location'], heading)
                        for heading in dir_sensors[robot_pos['heading']]]
@@ -99,7 +99,6 @@ if __name__ == '__main__':
                     else:
                         print "Movement stopped by wall."
                         movement = 0
-
             # check for goal entered
             goal_bounds = [testmaze.dim/2 - 1, testmaze.dim/2]
             if robot_pos['location'][0] in goal_bounds and robot_pos['location'][1] in goal_bounds:
