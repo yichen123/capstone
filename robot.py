@@ -92,7 +92,17 @@ class Robot(object):
             return False
         if self.map[location[1]][location[0]] == 1:
             return False
+        location = self.go_ahead(2)
+        if 0 > location[0] or location[0] > self.maze_dim * 2 or 0 > location[1] or location[1] > self.maze_dim * 2:
+            return False
+
         return True
+
+    def walk_randomly(self):
+        rotation = random.choice([-90, 0, 90])
+        #rotation = 0
+        movement = random.choice([-3, -2, -1, 0, 1, 2, 3])
+        return [rotation, movement]
 
 
 
@@ -119,15 +129,10 @@ class Robot(object):
         the tester to end the run and return the robot to the start.
         '''
 
-        rotation = random.choice([-90, 0, 90])
-        #rotation = 0
-        movement = random.choice([-3, -2, -1, 0, 1, 2, 3])
-        print 'location: ' +  str(self.get_location())
-        print 'heading: ' + self.heading
-        print sensors
+        rotation, movement = self.walk_randomly()
+        # print 'location: ' +  str(self.get_location())
+        # print 'heading: ' + self.heading
         self.update_map(sensors)
-        print rotation, movement
-
         self.execute(rotation, movement)
 
         return rotation, movement
