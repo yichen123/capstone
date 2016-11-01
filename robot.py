@@ -1,4 +1,5 @@
 import numpy as np
+import random
 # global dictionaries for robot movement and sensing
 dir_sensors = {'u': ['l', 'u', 'r'], 'r': ['u', 'r', 'd'],
                'd': ['r', 'd', 'l'], 'l': ['d', 'l', 'u'],
@@ -25,14 +26,13 @@ class Robot(object):
         self.visited = [[0 for col in range(self.maze_dim * 2 + 1)] \
                 for row in range(self.maze_dim * 2 + 1)]
         self.location = [1, 2 * self.maze_dim - 1]
-        self.visited[self.location[1]][self.location[0]] = 1
+        self.map[self.location[1]][self.location[0]] = 0
 
     def draw(self, sensors):
         '''
         Use this function to record sensor result for constructing map.
         '''
         dirs = dir_sensors[self.heading]
-        # print dirs
         for i in range(len(sensors)):
             location = [0, 0]
             location[0] = self.location[0]+ dir_move[dirs[i]][0] * (2 * sensors[i] + 1)
@@ -48,21 +48,35 @@ class Robot(object):
         location[1] = self.location[1] + dir_move[self.heading][1] * step
         return location
 
+    def fill_wall(self, location):
+        dirs = dir_sensors[self.heading]
+        location2 = [0, 0]
+        location3 = [0, 0]
+        location2[0] = location[0] + dir_move[dirs[0]][0]
+        location2[1] = location[1] + dir_move[dirs[0]][1]
+        location3[0] = location[0] + dir_move[dirs[2]][0]
+        location3[1] = location[1] + dir_move[dirs[2]][1]
+        self.map[location2[1]][location2[0]] = 1
+        self.map[location3[1]][location3[0]] = 1
+
     def make_move(self, move):
-        location = go_ahead(2 * move)
-        return location
+        if abs(move) > 0:
+            for i in range(move):
+                location = self.go_ahead(1)
+                self. fill_wall(location)
+                self.location = self.go_ahead(2)
 
     def make_turn(self, degree):
         dirs = dir_sensors[self.heading]
         heading = dirs[degree // 90 + 1]
         return heading
 
-    def if_valid_move(self, move):
+    def is_valid_move(self, move):
         if move < 0:
             heading = dir_reverse[self.heading]
         for i in range(2 * abs(move)):
-            location = go_ahead(i + 1)
-            if self.map[location[0]][location[1]] == 1:
+            location = self.go_ahead(i + 1)
+            if self.map[location[1]][location[0]] == 1:
                 return False
         return True
 
@@ -91,18 +105,19 @@ class Robot(object):
         the tester to end the run and return the robot to the start.
         '''
 
-        rotation = 90
-        movement = 0
+        rotation = random.choice([-90, 0, 90])
+        movement = 1
         print sensors
         print self.heading
         self.draw(sensors)
 
 
 
-        # for row in self.map:
-        #     print row
+        for row in self.map:
+             print row
 
 
         self.heading = self.make_turn(rotation)
-
+        if self.is_valid_move(movement) == True:
+            self.make_move(movement)
         return rotation, movement
