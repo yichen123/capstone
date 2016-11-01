@@ -64,10 +64,9 @@ class Robot(object):
         self.map[location3[1]][location3[0]] = 1
 
     def make_move(self, move):
-        if move > 0:
-            location = self.go_ahead(1)
-            self.fill_wall(location)
-            self.location = self.go_ahead(2)
+        location = self.go_ahead(1)
+        self.fill_wall(location)
+        self.location = self.go_ahead(2)
 
     def make_turn(self, degree):
         dirs = dir_sensors[self.heading]
@@ -76,22 +75,20 @@ class Robot(object):
 
     def execute(self, rotation, movement):
         self.heading = self.make_turn(rotation)
+        if movement < 0:
+            self.heading = dir_reverse[self.heading]
         for i in range(abs(movement)):
-            if movement < 0:
-                if self.is_valid_move(-1) == True:
-                    self.make_move(-1)
             if self.is_valid_move(1) == True:
                 self.make_move(1)
+        if movement < 0:
+            self.heading = dir_reverse[self.heading]
 
     def is_valid_move(self, move):
-        if move < 0:
-            heading = dir_reverse[self.heading]
-        if move > 0:
-            location = self.go_ahead(1)
-            if 0 > location[0] or location[0] > self.maze_dim * 2 or 0 > location[1] or location[1] > self.maze_dim * 2:
-                return False
-            if self.map[location[1]][location[0]] == 1:
-                return False
+        location = self.go_ahead(1)
+        if 0 > location[0] or location[0] > self.maze_dim * 2 or 0 > location[1] or location[1] > self.maze_dim * 2:
+            return False
+        if self.map[location[1]][location[0]] == 1:
+            return False
         return True
 
 
@@ -121,7 +118,7 @@ class Robot(object):
 
         rotation = random.choice([-90, 0, 90])
         #rotation = 0
-        movement = 3
+        movement = -1
         print 'location: ' +  str(self.location)
         print 'heading: ' + self.heading
         print sensors
