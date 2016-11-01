@@ -45,6 +45,9 @@ class Robot(object):
     def get_map(self):
         for row in self.map:
             print row
+    def get_location(self):
+        location = [self.location[0] // 2, (self.maze_dim * 2 - self.location[1]) // 2]
+        return location
 
     def go_ahead(self, step):
         location = [0, 0]
@@ -118,8 +121,8 @@ class Robot(object):
 
         rotation = random.choice([-90, 0, 90])
         #rotation = 0
-        movement = -1
-        print 'location: ' +  str(self.location)
+        movement = random.choice([-3, -2, -1, 0, 1, 2, 3])
+        print 'location: ' +  str(self.get_location())
         print 'heading: ' + self.heading
         print sensors
         self.update_map(sensors)
