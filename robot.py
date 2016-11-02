@@ -1,14 +1,16 @@
 import numpy as np
 import random
+from map import Map
 # global dictionaries for robot movement and sensing
 dir_sensors = {'u': ['l', 'u', 'r'], 'r': ['u', 'r', 'd'],
                'd': ['r', 'd', 'l'], 'l': ['d', 'l', 'u'],
                'up': ['l', 'u', 'r'], 'right': ['u', 'r', 'd'],
                'down': ['r', 'd', 'l'], 'left': ['d', 'l', 'u']}
-dir_move = {'u': [0, -1], 'r': [1, 0], 'd': [0, 1], 'l': [-1, 0],
-            'up': [0, -1], 'right': [1, 0], 'down': [0, 1], 'left': [-1, 0]}
+dir_move = {'u': [0, 1], 'r': [1, 0], 'd': [0, -1], 'l': [-1, 0],
+            'up': [0, 1], 'right': [1, 0], 'down': [0, -1], 'left': [-1, 0]}
 dir_reverse = {'u': 'd', 'r': 'l', 'd': 'u', 'l': 'r',
                'up': 'd', 'right': 'l', 'down': 'u', 'left': 'r'}
+
 
 class Robot(object):
     def __init__(self, maze_dim):
@@ -21,82 +23,58 @@ class Robot(object):
 
         self.heading = 'up'
         self.maze_dim = maze_dim
-        self.map = [[0 for col in range(self.maze_dim * 2 + 1)] \
-                for row in range(self.maze_dim * 2 + 1)]
-        self.visited = [[0 for col in range(self.maze_dim * 2 + 1)] \
-                for row in range(self.maze_dim * 2 + 1)]
-        self.location = [1, 2 * self.maze_dim - 1]
-        self.map[self.location[1]][self.location[0]] = 0
+        self.map = Map(self.maze_dim)
+        self.location = [0, 0]
 
+    def reset(self):
+        self.heading = 'up'
+        self.location = [0, 0]
+        
     def update_map(self, sensors):
         '''
-        Use this function to record sensor result for constructing map.
+        pass through the current location, direction, and distance to the Map to update walls
         '''
         dirs = dir_sensors[self.heading]
         for i in range(len(sensors)):
-            location = [0, 0]
-            location[0] = self.location[0]+ dir_move[dirs[i]][0] * (2 * sensors[i] + 1)
-            location[1] = self.location[1]+ dir_move[dirs[i]][1] * (2 * sensors[i] + 1)
-            # print dirs[i], sensors[i]
-            # print location
-            #print location, sensors[i], self.location, dirs[i]
-            self.map[location[1]][location[0]] = 1
+            # print self.location, self.heading, dirs[i], sensors[i]
+            self.map.update_map(self.location, dirs[i], sensors[i])
 
     def get_map(self):
-        for row in self.map:
-            print row
-    def get_location(self):
-        location = [self.location[0] // 2, (self.maze_dim * 2 - self.location[1]) // 2]
-        return location
+        self.map.get_map()
 
-    def go_ahead(self, step):
-        location = [0, 0]
-        location[0] = self.location[0] + dir_move[self.heading][0] * step
-        location[1] = self.location[1] + dir_move[self.heading][1] * step
-        return location
-
-    def fill_wall(self, location):
-        dirs = dir_sensors[self.heading]
-        location2 = [0, 0]
-        location3 = [0, 0]
-        location2[0] = location[0] + dir_move[dirs[0]][0]
-        location2[1] = location[1] + dir_move[dirs[0]][1]
-        location3[0] = location[0] + dir_move[dirs[2]][0]
-        location3[1] = location[1] + dir_move[dirs[2]][1]
-        self.map[location2[1]][location2[0]] = 1
-        self.map[location3[1]][location3[0]] = 1
-
-    def make_move(self, move):
-        location = self.go_ahead(1)
-        self.fill_wall(location)
-        self.location = self.go_ahead(2)
 
     def make_turn(self, degree):
         dirs = dir_sensors[self.heading]
-        heading = dirs[degree // 90 + 1]
-        return heading
+        self.heading = dirs[degree // 90 + 1]
+
+    def turn_around(self):
+        self.heading = dir_reverse[self.heading]
+
+    def take_step(self):
+        # robot move one step ahead
+        self.location[0] += dir_move[self.heading][0]
+        self.location[1] += dir_move[self.heading][1]
+
+    def get_status(self):
+        print 'status is: '
+        print self.location, self.heading
+
 
     def execute(self, rotation, movement):
-        self.heading = self.make_turn(rotation)
+        move_back = False
         if movement < 0:
-            self.heading = dir_reverse[self.heading]
+            move_back = True
+        self.make_turn(rotation)
+        if move_back:
+            self.turn_around()
         for i in range(abs(movement)):
-            if self.is_valid_move(1) == True:
-                self.make_move(1)
-        if movement < 0:
-            self.heading = dir_reverse[self.heading]
+            if self.map.is_valid_move(self.location, self.heading):
+                self.map.fill_wall(self.location, self.heading)
+                self.take_step()
+        if move_back:
+            self.turn_around()
 
-    def is_valid_move(self, move):
-        location = self.go_ahead(1)
-        if 0 > location[0] or location[0] > self.maze_dim * 2 or 0 > location[1] or location[1] > self.maze_dim * 2:
-            return False
-        if self.map[location[1]][location[0]] == 1:
-            return False
-        location = self.go_ahead(2)
-        if 0 > location[0] or location[0] > self.maze_dim * 2 or 0 > location[1] or location[1] > self.maze_dim * 2:
-            return False
 
-        return True
 
     def walk_randomly(self):
         rotation = random.choice([-90, 0, 90])
@@ -104,6 +82,12 @@ class Robot(object):
         movement = random.choice([-3, -2, -1, 0, 1, 2, 3])
         return [rotation, movement]
 
+    def test_walk(self):
+        return [0, 1]
+
+
+    def find_route(self, location):
+        pass
 
 
 
@@ -130,9 +114,15 @@ class Robot(object):
         '''
 
         rotation, movement = self.walk_randomly()
-        # print 'location: ' +  str(self.get_location())
         # print 'heading: ' + self.heading
+        if rotation not in [-90, 90]:
+            rotation = 0
         self.update_map(sensors)
         self.execute(rotation, movement)
 
         return rotation, movement
+
+
+
+
+

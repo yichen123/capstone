@@ -13,7 +13,7 @@ dir_reverse = {'u': 'd', 'r': 'l', 'd': 'u', 'l': 'r',
                'up': 'd', 'right': 'l', 'down': 'u', 'left': 'r'}
 
 # test and score parameters
-max_time = 100
+max_time = 1000
 train_score_mult = 1/30.
 
 if __name__ == '__main__':
@@ -37,13 +37,15 @@ if __name__ == '__main__':
         # Set the robot in the start position. Note that robot position
         # parameters are independent of the robot itself.
         robot_pos = {'location': [0, 0], 'heading': 'up'}
+        testrobot.reset()
 
         run_active = True
         hit_goal = False
         while run_active:
             # check for end of time
             total_time += 1
-            # print robot_pos [debug]
+            print robot_pos #[debug]
+            testrobot.get_status()
             if total_time > max_time:
                 run_active = False
                 print "Allotted time exceeded."
