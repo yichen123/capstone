@@ -71,6 +71,23 @@ class Map(object):
 
 
 
+    def is_goal(self, location):
+        # see if that location is in the corner of a 3 * 3 square of 0's
+        # return False if not, and True otherwise
+        location = self.pos_map(location)
+        print location
+        for i in range(3):
+            for j in range(3):
+                location1 = [location[0] + j, location[1] + i]
+                if self.map[location1[1]][location1[0]] == 1:
+                    return False
+        print 'good! ' + str(location)
+        return True
+
+
+
+
+
 
 
 

@@ -44,8 +44,7 @@ if __name__ == '__main__':
         while run_active:
             # check for end of time
             total_time += 1
-            print robot_pos #[debug]
-            testrobot.get_status()
+            # print robot_pos #[debug]
             if total_time > max_time:
                 run_active = False
                 print "Allotted time exceeded."

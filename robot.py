@@ -25,11 +25,12 @@ class Robot(object):
         self.maze_dim = maze_dim
         self.map = Map(self.maze_dim)
         self.location = [0, 0]
+        self.goal = None
 
     def reset(self):
         self.heading = 'up'
         self.location = [0, 0]
-        
+
     def update_map(self, sensors):
         '''
         pass through the current location, direction, and distance to the Map to update walls
@@ -86,6 +87,24 @@ class Robot(object):
         return [0, 1]
 
 
+    def find_goal(self):
+        '''
+        although we dont know the goal position exactly, but we have an idea 
+        that it should be in the center of the maze.
+        So we start with a rough guess of the position, and then as we update map as we moves, 
+        the goal position will become clear.
+
+        '''
+        search = self.maze_dim // 3
+
+        for i in range(search):
+            for j in range(search):
+                if self.map.is_goal([search + i, search + j]):
+                    return [search + i, search + j]
+
+
+
+
     def find_route(self, location):
         pass
 
@@ -118,6 +137,8 @@ class Robot(object):
         if rotation not in [-90, 90]:
             rotation = 0
         self.update_map(sensors)
+        self.goal = self.find_goal()
+        print self.goal
         self.execute(rotation, movement)
 
         return rotation, movement
