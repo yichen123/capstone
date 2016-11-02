@@ -17,8 +17,16 @@ dir_move = {'u': [0, -1], 'r': [1, 0], 'd': [0, 1], 'l': [-1, 0],
 dir_reverse = {'u': 'd', 'r': 'l', 'd': 'u', 'l': 'r',
                'up': 'd', 'right': 'l', 'down': 'u', 'left': 'r'}
 
+#helper functions:
+def dist(pos1, pos2):
+    dx = pos1[0] - pos2[0]
+    dy = pos1[1] - pos2[1]
+    return sqrt(dx ** 2 + dy ** 2)
+
+
 class Map(object):
     def __init__(self, maze_dim):
+        self.maze_dim = maze_dim
         self.dim = maze_dim * 2 + 1
         self.map = [[0 for col in range(self.dim)] \
                 for row in range(self.dim)]
@@ -32,9 +40,10 @@ class Map(object):
         '''
         transfer from maze coordinates to map coordinate
         '''
-        location = [maze_location[0] * 2 + 1, self.dim - maze_location[1] * 2 -2]
+        x = maze_location[0] * 2 + 1
+        y = self.dim - maze_location[1] * 2 - 2
         # print maze_location, location, self.dim
-        return location
+        return [x, y]
 
 
     def update_map(self, robot_location, direction, distance):
@@ -43,7 +52,8 @@ class Map(object):
         location1[0] = location[0] + dir_move[direction][0] * (distance * 2 + 1)
         location1[1] = location[1] + dir_move[direction][1] * (distance * 2 + 1)
         # print location, direction, location1
-        self.map[location1[1]][location1[0]] = 1
+        if 0 <= location1[1] < self.dim and 0 <= location1[0] < self.dim:
+            self.map[location1[1]][location1[0]] = 1
 
     def fill_wall(self, robot_location, direction):
         # update walls for unsteped position
@@ -65,6 +75,8 @@ class Map(object):
         # if the wall is next to the robot in that direction, return false
         location = self.pos_map(robot_location)
         location1 = self.pos_ahead(location, direction)
+        if 0 > location1[1] or self.dim <= location1[1] or 0 > location1[0] or self.dim <= location1[0]:
+            return False
         if self.map[location1[1]][location1[0]] == 1:
             return False
         return True
@@ -75,15 +87,24 @@ class Map(object):
         # see if that location is in the corner of a 3 * 3 square of 0's
         # return False if not, and True otherwise
         location = self.pos_map(location)
-        print location
+        # print location
         for i in range(3):
             for j in range(3):
                 location1 = [location[0] + j, location[1] + i]
                 if self.map[location1[1]][location1[0]] == 1:
                     return False
-        print 'good! ' + str(location)
+        # print 'good! ' + str(location)
         return True
 
+    def is_connect(self, pos1, pos2):
+        location1 = self.pos_map(pos1)
+        location2 = self.pos_map(pos2)
+        location = [(location1[0] + location2[0]) / 2, (location1[1] + location2[1]) / 2]
+        if self.map[location[1]][location[0]] == 0:
+
+            return True
+        else:
+            return False
 
 
 

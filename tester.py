@@ -13,7 +13,7 @@ dir_reverse = {'u': 'd', 'r': 'l', 'd': 'u', 'l': 'r',
                'up': 'd', 'right': 'l', 'down': 'u', 'left': 'r'}
 
 # test and score parameters
-max_time = 1000
+max_time = 100
 train_score_mult = 1/30.
 
 if __name__ == '__main__':
@@ -45,6 +45,8 @@ if __name__ == '__main__':
             # check for end of time
             total_time += 1
             # print robot_pos #[debug]
+            # testrobot.get_status()
+
             if total_time > max_time:
                 run_active = False
                 print "Allotted time exceeded."
@@ -108,8 +110,11 @@ if __name__ == '__main__':
                     runtimes.append(total_time - sum(runtimes))
                     run_active = False
                     print "Goal found; run {} completed!".format(run)
-        testrobot.get_map()
-
+        if run == 1:
+            testrobot.get_values()
+            testrobot.get_map()
+            testrobot.get_record()
+       
     # Report score if robot is successful.
     if len(runtimes) == 2:
         print "Task complete! Score: {:4.3f}".format(runtimes[1] + train_score_mult*runtimes[0])
