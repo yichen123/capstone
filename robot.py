@@ -10,7 +10,13 @@ dir_move = {'u': [0, 1], 'r': [1, 0], 'd': [0, -1], 'l': [-1, 0],
             'up': [0, 1], 'right': [1, 0], 'down': [0, -1], 'left': [-1, 0]}
 dir_reverse = {'u': 'd', 'r': 'l', 'd': 'u', 'l': 'r',
                'up': 'd', 'right': 'l', 'down': 'u', 'left': 'r'}
+
+# initial parameteres
+start = [0, 0]
 cost = 1
+
+# tuning factors
+beta = 0.2
 
 #helper functions:
 def dist(pos1, pos2):
@@ -27,43 +33,81 @@ class Robot(object):
         provided based on common information, including the size of the maze
         the robot is placed in.
         '''
-
         self.heading = 'up'
         self.maze_dim = maze_dim
         self.map = Map(self.maze_dim)
-        self.location = [0, 0]
+        self.start = start
+        self.location = self.start
         self.goal = None
         self.values = [[99 for row in range(self.maze_dim)] for col in range(self.maze_dim)]
         self.record = []
-
+        
     def reset(self):
+        '''
+         reset robot's position to the initial state
+        '''
         self.heading = 'up'
         self.location = [0, 0]
 
+    def get_status(self):
+        '''
+        print out the robot's current position and heading
+        '''
+        print 'status is: '
+        print self.location, self.heading
+    
+
+    ##########################
+    # map, value table
+    #########################
+
+    def get_map(self):
+        '''
+        print out map
+        '''
+        self.map.get_map()
+
+
     def update_map(self, sensors):
         '''
-        pass through the current location, direction, and distance to the Map to update walls
+        pass through the current location, direction, and distance to Map to update walls
         '''
+        changed = False
         dirs = dir_sensors[self.heading]
         for i in range(len(sensors)):
-            # print self.location, self.heading, dirs[i], sensors[i]
-            self.map.update_map(self.location, dirs[i], sensors[i])
+            update = self.map.update_map(self.location, dirs[i], sensors[i])
+            if update:
+                changed = True
+        if changed:
+            self.update_value(self.goal, cost)
+
+    def get_value_table(self):
+        '''
+        print out value tables
+        '''
+        for row in self.values:
+            print row
     
     def write_value(self, location, value):
+        '''
+        change given position's value table's value to given input
+        '''
         x = location[0]
         y = self.maze_dim - location[1] - 1
         self.values[y][x] = value
 
     def get_value(self, location):
+        '''
+        return position's value of the given location
+        '''
         x = location[0]
         y = self.maze_dim - location[1] - 1
         return self.values[y][x]
 
 
-
     def update_value(self, target, cost):
         '''
-        update value map to the target position
+        update value map based on the target position as 0 value, and given cost
         '''
         self.values = [[99 for row in range(self.maze_dim)] for col in range(self.maze_dim)]
         adjs = ['u', 'r', 'd', 'l']
@@ -88,34 +132,48 @@ class Robot(object):
 
 
 
-    def get_map(self):
-        self.map.get_map()
+    ###################
+    #   execution 
+    ##################
 
 
     def make_turn(self, degree):
+        '''
+        make a turn based on given inputs
+        '''
         dirs = dir_sensors[self.heading]
         self.heading = dirs[degree // 90 + 1]
 
     def turn_around(self):
+        '''
+        turn 180 degrees
+        '''
         self.heading = dir_reverse[self.heading]
 
     def take_step(self):
-        # robot move one step ahead
+        '''
+        robot move one step ahead
+        '''
         self.location[0] += dir_move[self.heading][0]
         self.location[1] += dir_move[self.heading][1]
 
-    def get_status(self):
-        print 'status is: '
-        print self.location, self.heading
 
-    def get_values(self):
-        for row in self.values:
-            print row
-    
-    def get_record(self):
-        print self.record
+
+    def to_action(self, move):
+        '''
+        transfer move direction into execution inputs
+        '''
+        dirs = dir_sensors[self.heading]
+        rotations = [-90, 0, 90]
+        if move in dirs:
+            return [rotations[dirs.index(move)], 1]
+        else:
+            return [0, -1]
 
     def execute(self, rotation, movement):
+        '''
+        robot moves based on given input
+        '''
         move_back = False
         if movement < 0:
             move_back = True
@@ -125,30 +183,58 @@ class Robot(object):
         for i in range(abs(movement)):
             if self.map.is_valid_move(self.location, self.heading):
                 #self.map.fill_wall(self.location, self.heading)
+                if self.reverse == False:
+                    self.record.append(self.heading)
                 self.take_step()
         if move_back:
             self.turn_around()
 
 
+    #################
+    # planning and searching
+    ##################
 
     def random_walk(self):
+        '''
+        return execution input randomly
+        '''
         rotation = random.choice([-90, 0, 90])
-        #rotation = 0
         movement = random.choice([0, 1, 2, 3])
         return [rotation, movement]
 
     def test_walk(self):
+        '''
+        test for debug
+        '''
         return [0, 1]
 
     def policy_walk(self):
-        move = self.find_next_move()
-        self.record.append(move)
-        dirs = dir_sensors[self.heading]
-        rotations = [-90, 0, 90]
-        if move in dirs:
-            return [rotations[dirs.index(move)], 1]
+        '''
+        return execution inputs based on two things, one is the value table, and another is the shortest path
+        from starting point to that goal position. 
+
+        The path might change after the robot sense new walls, as a result two things will happen.
+
+        IF the robot is on the path, then it will follow it. 
+        Or it moves back based on its previous moves to the starting point, until it on the path.
+        '''
+        path = self.find_path(self.start, self.goal)
+        # [debug]
+        # print self.record
+        # print self.location, self.goal
+        # [debug]
+        if self.location not in path:
+            self.reverse = True
+            previous_move = self.record.pop()
+            move = dir_reverse[previous_move]
+            return self.to_action(move)
         else:
-            return [90, 0]
+            if random.random() < beta:
+                return self.random_walk()
+            move = self.find_next_move(self.location)
+            return self.to_action(move)
+
+ 
 
 
     def find_goal(self):
@@ -157,7 +243,6 @@ class Robot(object):
         that it should be in the center of the maze, and we know what it should be look like.
         So we start with a rough guess of the position, and then as we update map when we moves, 
         the goal position will become clear.
-
         '''
         search = self.maze_dim // 3
         for i in range(search):
@@ -174,20 +259,40 @@ class Robot(object):
         else:
             pass
 
+    def find_path(self, start, target):
+        '''
+        find path from start location to the target location, base on the value table
+        '''
+        path = []
+        path.append(start)
+        util = self.get_value(start)
+        dirs = ['u', 'l', 'd', 'r']
+        x = start[0]
+        y = start[1]
+        while util > 0:
+            move = self.find_next_move([x, y])
+            x += dir_move[move][0]
+            y += dir_move[move][1]
+            path.append([x, y])
+            util = self.get_value([x, y])
+        return path
 
-    def find_next_move(self):
-        x = self.location[0]
-        y = self.location[1]
+
+    def find_next_move(self, location):
+        '''
+        return the best move direction of the given locaiton based on the value table
+
+        '''
+        x = location[0]
+        y = location[1]
         min_cost = self.get_value([x, y])
         min_move = None
         dirs = ['u', 'l', 'd', 'r']
         for neighbour in dirs:
-            location = [x + dir_move[neighbour][0], y + dir_move[neighbour][1]]
-            # print dir_move[neighbour], neighbour
-            if 0 <= location[0] < self.maze_dim and 0 <= location[1] < self.maze_dim:
-                if self.map.is_connect(location, [x, y]): 
-                    # print location, x, y, neighbour
-                    util = self.get_value([location[0], location[1]])
+            location1 = [x + dir_move[neighbour][0], y + dir_move[neighbour][1]]
+            if 0 <= location1[0] < self.maze_dim and 0 <= location1[1] < self.maze_dim:
+                if self.map.is_connect(location1, [x, y]): 
+                    util = self.get_value([location1[0], location1[1]])
                     if util < min_cost:
                         min_cost = util
                         min_move = neighbour
@@ -217,15 +322,14 @@ class Robot(object):
         the maze) then returing the tuple ('Reset', 'Reset') will indicate to
         the tester to end the run and return the robot to the start.
         '''
-        self.update_map(sensors)
+        self.reverse = False
         self.goal = self.find_goal()
 
-        self.update_value(self.goal, cost)
+        self.update_map(sensors)
+ 
         rotation, movement = self.policy_walk()
-        # print 'heading: ' + self.heading
         if rotation not in [-90, 90]:
             rotation = 0
-        # self.get_value()
         self.execute(rotation, movement)
         return rotation, movement
 

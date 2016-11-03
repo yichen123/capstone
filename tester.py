@@ -13,7 +13,7 @@ dir_reverse = {'u': 'd', 'r': 'l', 'd': 'u', 'l': 'r',
                'up': 'd', 'right': 'l', 'down': 'u', 'left': 'r'}
 
 # test and score parameters
-max_time = 100
+max_time = 1000
 train_score_mult = 1/30.
 
 if __name__ == '__main__':
@@ -111,9 +111,10 @@ if __name__ == '__main__':
                     run_active = False
                     print "Goal found; run {} completed!".format(run)
         if run == 1:
-            testrobot.get_values()
+            testrobot.get_value_table()
             testrobot.get_map()
-            testrobot.get_record()
+            
+
        
     # Report score if robot is successful.
     if len(runtimes) == 2:

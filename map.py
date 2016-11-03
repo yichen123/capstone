@@ -49,11 +49,15 @@ class Map(object):
     def update_map(self, robot_location, direction, distance):
         location = self.pos_map(robot_location)
         location1 = [0, 0]
-        location1[0] = location[0] + dir_move[direction][0] * (distance * 2 + 1)
-        location1[1] = location[1] + dir_move[direction][1] * (distance * 2 + 1)
+        changed = False
+        y = location[0] + dir_move[direction][0] * (distance * 2 + 1)
+        x = location[1] + dir_move[direction][1] * (distance * 2 + 1)
         # print location, direction, location1
-        if 0 <= location1[1] < self.dim and 0 <= location1[0] < self.dim:
-            self.map[location1[1]][location1[0]] = 1
+        if 0 <= x < self.dim and 0 <= y < self.dim:
+            if self.map[x][y] != 1:
+                self.map[x][y] = 1
+                changed = True
+        return changed
 
     def fill_wall(self, robot_location, direction):
         # update walls for unsteped position
@@ -85,6 +89,7 @@ class Map(object):
 
     def is_goal(self, location):
         # see if that location is in the corner of a 3 * 3 square of 0's
+        
         # return False if not, and True otherwise
         location = self.pos_map(location)
         # print location
