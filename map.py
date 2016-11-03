@@ -59,17 +59,6 @@ class Map(object):
                 changed = True
         return changed
 
-    def fill_wall(self, robot_location, direction):
-        # update walls for unsteped position
-
-        location = self.pos_map(robot_location)
-        location = self.pos_ahead(location, direction)
-        dirs = dir_sensors[direction]
-        location1 = [location[0] + dir_move[dirs[0]][0], location[1] + dir_move[dirs[0]][1]]
-        self.map[location1[1]][location1[0]] = 1
-        location1 = [location[0] + dir_move[dirs[2]][0], location[1] + dir_move[dirs[2]][1]]
-        self.map[location1[1]][location1[0]] = 1
-
 
     def pos_ahead(self, location, direction):
         return [location[0] + dir_move[direction][0], location[1] + dir_move[direction][1]]
@@ -89,7 +78,7 @@ class Map(object):
 
     def is_goal(self, location):
         # see if that location is in the corner of a 3 * 3 square of 0's
-        
+
         # return False if not, and True otherwise
         location = self.pos_map(location)
         # print location
@@ -99,6 +88,9 @@ class Map(object):
                 if self.map[location1[1]][location1[0]] == 1:
                     return False
         # print 'good! ' + str(location)
+        for i in range(3):
+            for j in range(3):
+                location1 = [location[0] + j, location[1] + i]
         return True
 
     def is_connect(self, pos1, pos2):
@@ -106,7 +98,6 @@ class Map(object):
         location2 = self.pos_map(pos2)
         location = [(location1[0] + location2[0]) / 2, (location1[1] + location2[1]) / 2]
         if self.map[location[1]][location[0]] == 0:
-
             return True
         else:
             return False

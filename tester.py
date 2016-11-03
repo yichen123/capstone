@@ -111,8 +111,13 @@ if __name__ == '__main__':
                     run_active = False
                     print "Goal found; run {} completed!".format(run)
         if run == 1:
-            testrobot.get_value_table()
+        #     testrobot.get_value_table()
             testrobot.get_map()
+            path = testrobot.solve_path()
+            print path
+            print testrobot.map.is_goal(path[-1])
+            print testrobot.map.pos_map(path[-1])
+
             
 
        
