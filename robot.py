@@ -306,10 +306,13 @@ class Robot(object):
         util = self.get_value(location)
         for count in range(3):
             location = self.take_step(location, heading)
-            util1 = self.get_value(location)
-            if util - cost < util1:
+            if 0 <= location[0] < self.maze_dim and 0 <= location[1] < self.maze_dim:
+                util1 = self.get_value(location)
+                if util - cost < util1:
+                    return count
+                util = util1
+            else:
                 return count
-            util = util1
         return 3
 
     def second_run(self):
@@ -420,7 +423,6 @@ class Robot(object):
             self.update_map(sensors)
 
             if self.finishing:
-                self.get_status()
                 # self.get_map()
 
                 rotation, movement = self.finish_moves()
