@@ -57,6 +57,7 @@ class Map(object):
             if self.map[x][y] != 1:
                 self.map[x][y] = 1
                 changed = True
+        #print changed
         return changed
 
 
@@ -76,11 +77,12 @@ class Map(object):
 
 
 
-    def is_goal(self, location):
+    def is_goal(self, maz_location):
         # see if that location is in the corner of a 3 * 3 square of 0's
 
         # return False if not, and True otherwise
-        location = self.pos_map(location)
+        location = self.pos_map(maz_location)
+        #print location, maz_location
         # print location
         for i in range(3):
             for j in range(3):
@@ -91,6 +93,7 @@ class Map(object):
         for i in range(3):
             for j in range(3):
                 location1 = [location[0] + j, location[1] + i]
+                #print location1
         return True
 
     def is_connect(self, pos1, pos2):

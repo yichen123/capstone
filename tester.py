@@ -44,7 +44,7 @@ if __name__ == '__main__':
         while run_active:
             # check for end of time
             total_time += 1
-            # print robot_pos #[debug]
+            #print robot_pos #[debug]
             # testrobot.get_status()
 
             if total_time > max_time:
@@ -111,14 +111,11 @@ if __name__ == '__main__':
                     run_active = False
                     print "Goal found; run {} completed!".format(run)
         if run == 1:
-        #     testrobot.get_value_table()
+            testrobot.get_value_table()
             testrobot.get_map()
-            path = testrobot.solve_path()
-            print path
-            print testrobot.map.is_goal(path[-1])
-            print testrobot.map.pos_map(path[-1])
-
-            
+            #path = testrobot.solve_path()
+            #print path
+        #testrobot.get_score()   
 
        
     # Report score if robot is successful.

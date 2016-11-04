@@ -21,7 +21,7 @@ start = [0, 0]
 cost = 1
 
 # tuning factors
-beta = 0.3
+beta = 0.
 
 #helper functions:
 def dist(pos1, pos2):
@@ -43,7 +43,7 @@ class Robot(object):
         self.map = Map(self.maze_dim)
         self.start = start
         self.location = self.start
-        self.goal = [maze_dim, maze_dim]
+        self.goal = [[maze_dim - 1, maze_dim - 1]]
         self.goal_changed = False
         self.finishing = False
         self.finish_count = 4
@@ -51,6 +51,7 @@ class Robot(object):
         self.record = []
         self.run = 1
         self.step = 0
+        self.score = 0
 
     def reset(self):
         '''
@@ -58,6 +59,8 @@ class Robot(object):
         '''
         self.heading = 'up'
         self.location = [0, 0]
+        self.record = []
+        self.socre = 0
 
     def get_status(self):
         '''
@@ -66,6 +69,8 @@ class Robot(object):
         print 'status is: '
         print self.location, self.heading
     
+    def get_score(self):
+        print 'score is: ' + str(self.score)
 
     ##########################
     # map and maze
@@ -94,7 +99,7 @@ class Robot(object):
                     x = search + i
                     y = search + j
                     result = [[x, y], [x + 1, y], [x + 1, y - 1], [x, y - 1]]
-                    if [x, y] != self.goal[0]:
+                    if x != self.goal[0][0] or y != self.goal[0][1]:
                         self.goal_changed = True
                         self.finish_count = 4
                         self.finishing = False
@@ -107,14 +112,17 @@ class Robot(object):
         pass through the current location, direction, and distance to Map to update walls
         '''
         changed = False
-        self.goal = self.update_goal()
         dirs = dir_sensors[self.heading]
         for i in range(len(sensors)):
             update = self.map.update_map(self.location, dirs[i], sensors[i])
             if update:
                 changed = True
+            # print update
         if changed:
+            self.goal = self.update_goal()
             self.update_value(self.goal, cost)
+
+
         if self.is_reach_goal():
             self.finishing = True
 
@@ -131,7 +139,8 @@ class Robot(object):
         make a turn based on given inputs
         '''
         dirs = dir_sensors[self.heading]
-        self.heading = dirs[degree // 90 + 1]
+        heading = dirs[degree // 90 + 1]
+        return heading
 
     def turn_around(self):
         '''
@@ -139,12 +148,13 @@ class Robot(object):
         '''
         self.heading = dir_reverse[self.heading]
 
-    def take_step(self):
+    def take_step(self, location, heading):
         '''
         robot move one step ahead
         '''
-        self.location[0] += dir_move[self.heading][0]
-        self.location[1] += dir_move[self.heading][1]
+        x = location[0] + dir_move[heading][0]
+        y = location[1] + dir_move[heading][1]
+        return [x, y]
 
 
 
@@ -171,7 +181,7 @@ class Robot(object):
         move_back = False
         if movement < 0:
             move_back = True
-        self.make_turn(rotation)
+        self.heading = self.make_turn(rotation)
         if move_back:
             self.turn_around()
         for i in range(abs(movement)):
@@ -179,7 +189,7 @@ class Robot(object):
                 #self.map.fill_wall(self.location, self.heading)
                 if self.reverse == False:
                     self.record.append(self.heading)
-                self.take_step()
+                self.location = self.take_step(self.location, self.heading)
         if move_back:
             self.turn_around()
 
@@ -267,7 +277,8 @@ class Robot(object):
         IF the robot is on the path, then it will follow it. 
         Or it moves back based on its previous moves to the starting point, until it on the path.
         '''
-        path = self.find_path(self.start, self.goal[0])
+        path = self.find_path(self.start, self.goal)
+        #print path
         # [debug]
         # print self.record
         # print self.location, self.goal
@@ -291,13 +302,29 @@ class Robot(object):
             self.run = 2
             return [0, 0]
 
+    def get_longest_step(self, location, heading):
+        util = self.get_value(location)
+        for count in range(3):
+            location = self.take_step(location, heading)
+            util1 = self.get_value(location)
+            if util - cost < util1:
+                return count
+            util = util1
+        return 3
+
     def second_run(self):
         '''
-        in second, we only move through the value table
+        in second, we only move through the value table, and we need to run as fast as possible
         '''
-
+        location = self.location
+        head = self.heading
         move = self.find_next_move(self.location)
-        return self.to_action(move)
+        rotation, movement = self.to_action(move)
+        head = self.make_turn(rotation)
+        step = self.get_longest_step(location, head)
+        self.record.append([rotation, step])
+        return rotation, step       
+
 
 
 
@@ -319,29 +346,28 @@ class Robot(object):
         '''
         find the shortest path from starting to the goal position
         '''
-        path = self.find_path(self.start, self.goal[0])
+        path = self.find_path(self.start, self.goal)
         return path
 
-    def find_path(self, start, target):
+    def find_path(self, start, goal):
         '''
         find path from start location to the target location, base on the value table
         '''
+        target = goal[0]
         path = []
         path.append(start)
         util = self.get_value(start)
         dirs = ['u', 'l', 'd', 'r']
         x = start[0]
         y = start[1]
-        while util > 0:
+        while util >= 0:
             move = self.find_next_move([x, y])
             x += dir_move[move][0]
             y += dir_move[move][1]
             path.append([x, y])
             util = self.get_value([x, y])
-            if target == [x, y]:
+            if [x, y] in goal:
                 return path
-        if target not in path:
-            path.append(target)
         return path
 
 
@@ -390,9 +416,13 @@ class Robot(object):
         the tester to end the run and return the robot to the start.
         '''
         self.reverse = False
-        self.update_map(sensors)
         if self.run == 1:
+            self.update_map(sensors)
+
             if self.finishing:
+                self.get_status()
+                # self.get_map()
+
                 rotation, movement = self.finish_moves()
                 if [rotation, movement] == [0, 0]:
                     self.run = 2
@@ -405,12 +435,14 @@ class Robot(object):
         else:
             rotation, movement = self.second_run()
         self.execute(rotation, movement)
-        # self.get_status()
+        #self.get_status()
+        #print self.map.is_goal([4, 4])
         # print self.record
-        # print self.find_path(start, self.goal[0])
+        # print self.find_path(start, self.goal)
+        #print self.goal[0]
 
 
-
+        self.score += 1
         return rotation, movement
 
 
