@@ -13,7 +13,7 @@ dir_reverse = {'u': 'd', 'r': 'l', 'd': 'u', 'l': 'r',
                'up': 'd', 'right': 'l', 'down': 'u', 'left': 'r'}
 
 # test and score parameters
-max_time = 1000
+max_time = 500
 train_score_mult = 1/30.
 
 if __name__ == '__main__':
@@ -112,7 +112,7 @@ if __name__ == '__main__':
                     print "Goal found; run {} completed!".format(run)
         if run == 1:
             testrobot.get_value_table()
-            testrobot.get_map()
+            # testrobot.get_map()
             #path = testrobot.solve_path()
             #print path
         #testrobot.get_score()   

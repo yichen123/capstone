@@ -2,6 +2,7 @@ import numpy as np
 import random
 from map import Map
 # global dictionaries for robot movement and sensing
+dirs = ['u', 'r', 'd', 'l']
 dir_sensors = {'u': ['l', 'u', 'r'], 'r': ['u', 'r', 'd'],
                'd': ['r', 'd', 'l'], 'l': ['d', 'l', 'u'],
                'up': ['l', 'u', 'r'], 'right': ['u', 'r', 'd'],
@@ -11,6 +12,7 @@ dir_move = {'u': [0, 1], 'r': [1, 0], 'd': [0, -1], 'l': [-1, 0],
 dir_reverse = {'u': 'd', 'r': 'l', 'd': 'u', 'l': 'r',
                'up': 'd', 'right': 'l', 'down': 'u', 'left': 'r'}
 
+
 # name of corners of goal_squares
 goal_square = ['lt', 'rt', 'rb', 'lb']
 # move should take when robot is at corners
@@ -18,7 +20,9 @@ goal_square_moves = ['r', 'd', 'l', 'u']
 
 # initial parameteres
 start = [0, 0]
+start_heading = 'u'
 cost = 1
+max_step = 3
 
 # tuning factors
 beta = 0.
@@ -38,7 +42,7 @@ class Robot(object):
         provided based on common information, including the size of the maze
         the robot is placed in.
         '''
-        self.heading = 'up'
+        self.heading = start_heading
         self.maze_dim = maze_dim
         self.map = Map(self.maze_dim)
         self.start = start
@@ -57,10 +61,23 @@ class Robot(object):
         '''
          reset robot's position to the initial state
         '''
-        self.heading = 'up'
+        self.heading = start_heading
         self.location = [0, 0]
         self.record = []
         self.socre = 0
+
+    def to_rotation(self, direction):
+        '''
+        transfer direction into rotation angles
+        return -1 if dir is in behind
+        '''
+        dirs = dir_sensors[self.heading]
+
+        rotations = [-90, 0, 90]
+        if direction in dirs:
+            return rotations[dirs.index(direction)]
+        else:
+            return -1
 
     def get_status(self):
         '''
@@ -156,19 +173,6 @@ class Robot(object):
         y = location[1] + dir_move[heading][1]
         return [x, y]
 
-
-
-    def to_action(self, move):
-        '''
-        transfer move direction into execution inputs
-        '''
-        dirs = dir_sensors[self.heading]
-
-        rotations = [-90, 0, 90]
-        if move in dirs:
-            return [rotations[dirs.index(move)], 1]
-        else:
-            return [0, -1]
 
     def execute(self, rotation, movement):
         '''
@@ -267,53 +271,21 @@ class Robot(object):
         '''
         return [0, 1]
 
-    def policy_walk(self):
-        '''
-        return execution inputs based on two things, one is the value table, and another is the shortest path
-        from starting point to that goal position. 
 
-        The path might change after the robot sense new walls, as a result two things will happen.
 
-        IF the robot is on the path, then it will follow it. 
-        Or it moves back based on its previous moves to the starting point, until it on the path.
-        '''
-        path = self.find_path(self.start, self.goal)
-        #print path
-        # [debug]
-        # print self.record
-        # print self.location, self.goal
-        # [debug]
-        if self.location not in path:
-            self.reverse = True
-            previous_move = self.record.pop()
-            move = dir_reverse[previous_move]
-        else:
-            if random.random() < beta:
-                return self.random_walk()
-            move = self.find_next_move(self.location)
-        return self.to_action(move)
 
     def finish_moves(self):
         if self.finish_count > 0:
             pos = self.goal.index(self.location)
             self.finish_count -= 1
-            return self.to_action(goal_square_moves[pos])
+            x = self.location[0] + dir_move[goal_square_moves[pos]][0]
+            y = self.location[1] + dir_move[goal_square_moves[pos]][1]
+            return self.find_commond(self.location, [x, y])
         else:
             self.run = 2
             return [0, 0]
 
-    def get_longest_step(self, location, heading):
-        util = self.get_value(location)
-        for count in range(3):
-            location = self.take_step(location, heading)
-            if 0 <= location[0] < self.maze_dim and 0 <= location[1] < self.maze_dim:
-                util1 = self.get_value(location)
-                if util - cost < util1:
-                    return count
-                util = util1
-            else:
-                return count
-        return 3
+
 
     def second_run(self):
         '''
@@ -321,14 +293,12 @@ class Robot(object):
         '''
         location = self.location
         head = self.heading
-        move = self.find_next_move(self.location)
+        move = self.find_next_move(self.location, )
         rotation, movement = self.to_action(move)
         head = self.make_turn(rotation)
         step = self.get_longest_step(location, head)
         self.record.append([rotation, step])
         return rotation, step       
-
-
 
 
 
@@ -359,41 +329,123 @@ class Robot(object):
         target = goal[0]
         path = []
         path.append(start)
-        util = self.get_value(start)
-        dirs = ['u', 'l', 'd', 'r']
         x = start[0]
         y = start[1]
-        while util >= 0:
-            move = self.find_next_move([x, y])
-            x += dir_move[move][0]
-            y += dir_move[move][1]
-            path.append([x, y])
-            util = self.get_value([x, y])
-            if [x, y] in goal:
-                return path
+        while [x, y] not in goal:
+            move = self.find_best_neighbour([x, y], 3)[0]
+            for i in range(move[1]):
+                x += dir_move[move[0]][0]
+                y += dir_move[move[0]][1]
+                path.append([x, y])
         return path
 
-
-    def find_next_move(self, location):
+    def get_longest_step(self, location, direction, step):
         '''
-        return the best move direction of the given locaiton based on the value table
-
+        find the max step from the given location along the given direction
+        return a list [max steps, it's location]
         '''
+        util = self.get_value(location)
+        for count in range(step):
+            location1 = self.take_step(location, direction)
+            if 0 <= location1[0] < self.maze_dim and 0 <= location1[1] < self.maze_dim and self.map.is_connect(location, location1):
+                util1 = self.get_value(location1)
+                if util - cost < util1:
+                    return count, location1
+                util = util1
+                location = location1
+            else:
+                return count, location
+        return step, location
+
+
+    def find_best_neighbour(self, location, step):
+        '''
+        find the neighbour in 3 steps in four directions to the given location
+        Return a list [action commond to there, its location]
+        '''        
         x = location[0]
         y = location[1]
         min_cost = self.get_value([x, y])
         min_move = None
-        dirs = ['u', 'l', 'd', 'r']
+        best = location
         for neighbour in dirs:
-            location1 = [x + dir_move[neighbour][0], y + dir_move[neighbour][1]]
-            if 0 <= location1[0] < self.maze_dim and 0 <= location1[1] < self.maze_dim:
-                if self.map.is_connect(location1, [x, y]): 
-                    util = self.get_value([location1[0], location1[1]])
-                    if util < min_cost:
-                        min_cost = util
-                        min_move = neighbour
-        return min_move
+            steps, pos = self.get_longest_step(location, neighbour, step)
+            if steps > 0:
+                if self.get_value(pos) <= min_cost:
+                    min_cost = self.get_value(pos)
+                    min_move = neighbour, steps
+                    best = pos
+        return min_move, best
 
+    def find_commond(self, start, target):
+        x = target[0] - start[0]
+        y = target[1] - start[1]
+        moves = [[0, 1], [1, 0], [0, -1], [-1, 0]]
+        direction = dirs[moves.index([x, y]) % 4]
+        rotation = self.to_rotation(direction)
+        if rotation == -1:
+            return [0, -1]
+        return [rotation, 1]
+
+
+    def find_next_move(self, location, path):
+        '''
+        return the best move direction and steps that along the path
+        '''
+        for i in range(max_step):
+            move, pos = self.find_best_neighbour(location, max_step - i)
+            if pos in path:
+                rotation = self.to_rotation(move[0])
+                if rotation == -1:
+                    return [rotation, -move[1]]
+                return [rotation, move[1]]
+        pos = path[path.index(location) + 1]
+        return self.find_commond(location, pos)
+
+
+
+
+    def reverse_move(self):
+        '''
+        robot move backwards along the previous actions
+        '''
+        self.reverse = True
+        previous = self.record.pop()
+        count = 1
+        for i in range(2):
+            if len(self.record) > 0:
+                if previous == self.record[-1]:
+                    self.record.pop()
+                    count += 1
+        previous = dir_reverse[previous]
+        rotation = self.to_rotation(previous)
+        if rotation == -1:
+            return [0, -count]
+        else:
+            return [rotation, count]
+
+
+
+    def policy_walk(self):
+        '''
+        return execution inputs based on two things, one is the value table, and another is the shortest path
+        from starting point to that goal position. 
+
+        The path might change after the robot sense new walls, as a result two things will happen.
+
+        IF the robot is on the path, then it will follow it. 
+        Or it moves back based on its previous moves to the starting point, until it on the path.
+        '''
+        self.reverse = False
+        path = self.find_path(self.start, self.goal)
+        if self.location not in path:
+            move = self.reverse_move()
+        else:
+            if random.random() < beta:
+                return self.random_walk()
+            move = self.find_next_move(self.location, path)
+        
+        return move
 
 
 
@@ -419,9 +471,10 @@ class Robot(object):
         the tester to end the run and return the robot to the start.
         '''
         self.reverse = False
+        #print self.location, self.heading
+
         if self.run == 1:
             self.update_map(sensors)
-
             if self.finishing:
                 # self.get_map()
 
@@ -435,9 +488,10 @@ class Robot(object):
             if rotation not in [-90, 90]:
                 rotation = 0
         else:
-            rotation, movement = self.second_run()
+            rotation, movement = self.policy_walk()
         self.execute(rotation, movement)
-        #self.get_status()
+        # print self.record
+        # print ' '
         #print self.map.is_goal([4, 4])
         # print self.record
         # print self.find_path(start, self.goal)
