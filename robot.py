@@ -109,10 +109,12 @@ class Robot(object):
         So we start with a rough guess of the position, and then as we update map when we moves, 
         the goal position will become clear.
         '''
-        search = self.maze_dim // 3
-        for i in range(search):
-            for j in range(search):
-                if self.map.is_goal([search + i, search + j]):
+        search = self.maze_dim / 2 - 2
+        for i in range(3):
+            search_i = search + i
+            for j in range(3):
+                search_j = search + j
+                if self.map.is_goal([search_i, search_j]):
                     x = search + i
                     y = search + j
                     result = [[x, y], [x + 1, y], [x + 1, y - 1], [x, y - 1]]
