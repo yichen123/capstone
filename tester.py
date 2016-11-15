@@ -112,6 +112,7 @@ if __name__ == '__main__':
                     print "Goal found; run {} completed!".format(run)
         if run == 1:
             testrobot.get_value_table()
+            print testrobot.record
             # testrobot.get_map()
             #path = testrobot.solve_path()
             #print path
