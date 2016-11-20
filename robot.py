@@ -1,6 +1,5 @@
 import numpy as np
 import random
-import turtle
 
 from map import Map
 # global dictionaries for robot movement and sensing
@@ -72,9 +71,6 @@ class Robot(object):
         self.run = 1
         self.step = 0
         self.score = 0
-        self.tp = turtle # add turtle for drwaing the trace of robot
-        self.tp.pd()
-        self.tp.pencolor('blue')
 
     def reset(self):
         '''
@@ -84,9 +80,7 @@ class Robot(object):
         self.location = [0, 0]
         self.record = []
         self.socre = 0
-        self.tp.pu()
-        self.tp.setpos((0, 0))
-        self.tp.pd()
+
 
 
     def to_rotation(self, direction):
@@ -223,7 +217,6 @@ class Robot(object):
             self.turn_around()
 
         # draw the trace of robot
-        self.tp.goto((self.location[0] * 20, self.location[1] * 20))
 
 
     ######################
