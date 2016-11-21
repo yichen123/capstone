@@ -31,8 +31,10 @@ max_step = 3
 beta = 0.
 
 # perform drawing if True, no drawing otherwise
-ifdraw = True
+ifdraw = False
 
+# choosing mode 1 - shortest_first, 2 - path_first
+path_first = True
 
 #helper functions:
 def dist(pos1, pos2):
@@ -71,7 +73,7 @@ class Robot(object):
         self.goal = [[maze_dim - 1, maze_dim - 1]]
         self.goal_changed = False
         self.finishing = False
-        self.finish_count = 4
+        self.finish_count = len(self.goal)
         self.values = [[99 for row in range(self.maze_dim)] for col in range(self.maze_dim)]
         self.record = []
         self.run = 1
@@ -79,6 +81,9 @@ class Robot(object):
         self.score = 0
         self.path = []
         self.path_previous = []
+        self.goto_start = False
+        self.shortest = []
+        self.shortest_previous = []
 
         # drawing
         if ifdraw:
@@ -139,6 +144,10 @@ class Robot(object):
         So we start with a rough guess of the position, and then as we update map when we moves, 
         the goal position will become clear.
         '''
+        if self.goto_start:
+            self.goal = [[0, 0]]
+            self.finish_count = len(self.goal)
+            return
         search = self.maze_dim / 2 - 2
         for i in range(3):
             search_i = search + i
@@ -151,18 +160,22 @@ class Robot(object):
                     if x != self.goal[0][0] or y != self.goal[0][1]:
                         self.goal_changed = True
                         if ifdraw:
-                            self.draw.draw_goal(result)
-                        self.finish_count = 4
+                            if self.goto_start == False:
+                                self.draw.draw_goal(result)
                         self.finishing = False
-                    return result
+                    self.finish_count = len(self.goal)
+                    self.goal = result
+                    return
 
 
 
-    def update_map(self, sensors):
+    def update_map(self, sensors, changed = False):
         '''
         pass through the current location, direction, and distance to Map to update walls
         '''
-        changed = False
+        if self.goto_start:
+            if len(self.goal) > 2:
+                self.update_goal()
         dirs = dir_sensors[self.heading]
         for i in range(len(sensors)):
             update = self.map.update_map(self.location, dirs[i], sensors[i])
@@ -172,17 +185,19 @@ class Robot(object):
         if changed:
             if ifdraw:
                 self.draw.draw_walls(sensors)
-            self.goal = self.update_goal()
+            self.update_goal()
             self.update_value(self.goal, cost)
-            self.path = self.find_path(self.start, self.goal)
+            if path_first:
+                self.path = self.find_path(self.location, self.goal)
+            else:
+                self.path = self.find_path(self.start, self.goal)
             if ifdraw:
                 if self.path != self.path_previous:
                     self.draw.draw_path(self.path)
                     self.path_previous = deepcopy(self.path)
-
-
         if self.is_reach_goal():
             self.finishing = True
+
 
 
 
@@ -318,14 +333,13 @@ class Robot(object):
 
 
     def finish_moves(self):
-        if self.finish_count > 0:
+        if self.finish_count > 1:
             pos = self.goal.index(self.location)
             self.finish_count -= 1
             x = self.location[0] + dir_move[goal_square_moves[pos]][0]
             y = self.location[1] + dir_move[goal_square_moves[pos]][1]
             return self.find_commond(self.location, [x, y])
         else:
-            self.run = 2
             return [0, 0]
 
 
@@ -348,6 +362,7 @@ class Robot(object):
     def is_reach_goal(self):
         '''
         since there are four goal squares, and we need to check if our robot has reached either one of them.
+        if reach goal, then set goal_changed == False, and to see if it changes later.
         '''
         if self.location not in self.goal:
             return False
@@ -506,23 +521,43 @@ class Robot(object):
         the tester to end the run and return the robot to the start.
         '''
         self.reverse = False
-        #print self.location, self.heading
-
         if self.run == 1:
             self.update_map(sensors)
             if self.finishing:
                 # self.get_map()
-
                 rotation, movement = self.finish_moves()
                 if [rotation, movement] == [0, 0]:
-                    self.run = 2
-                    self.reset()
-                    return 'Reset', 'Reset'
+                    if path_first:
+                        if self.goto_start == False:
+                            self.shortest = self.find_path(self.start, self.goal)
+                            if self.shortest == self.shortest_previous:
+                                self.run = 2
+                                self.reset()
+                                return 'Reset', 'Reset'
+                            else:
+                                self.shortest_previous = deepcopy(self.shortest)
+
+                        self.finishing = False
+                        if self.goto_start:
+                            self.goto_start = False
+                        else:
+                            self.goto_start = True
+                        self.update_map(sensors, True)
+                        if sensors == [0, 0, 0]:
+                            rotation, movement = [90, 0]
+                        else:
+                            rotation, movement = self.policy_walk()
+                    else:
+                        self.run = 2
+                        self.reset()
+                        return 'Reset', 'Reset'
             else:
                 rotation, movement = self.policy_walk()
             if rotation not in [-90, 90]:
                 rotation = 0
         else:
+            if len(self.shortest) != 0:
+                self.path = deepcopy(self.shortest)
             rotation, movement = self.policy_walk()
         self.execute(rotation, movement)
         if ifdraw:

@@ -154,7 +154,7 @@ class Visual(object):
     def draw_path(self, path):
         self.pen_path.clear()
         self.pen_path.pu()
-        self.pen_path.goto(0, 0)
+        self.pen_path.goto(path[0][0] * sq_size, path[0][1] * sq_size)
         self.pen_path.pd()
         for pos in path:
             x = pos[0] * sq_size
