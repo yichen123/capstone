@@ -25,11 +25,8 @@ class Visual(object):
     def __init__(self, dim_size):
         self.window = turtle.Screen()
         self.window.setworldcoordinates(-50, -50, sq_size * (dim_size + 2), sq_size * (dim_size + 2))
+        self.draw_background(dim_size)
 
-        self.pen_trace = turtle.Turtle()
-        self.pen_trace.left(90)
-        self.pen_trace.speed(speed_trace)
-        self.pen_trace.width(width_trace)
 
         self.pen_wall = turtle.Turtle()
         self.pen_wall.hideturtle()
@@ -43,12 +40,23 @@ class Visual(object):
         self.pen_path.speed(speed_path)
         self.pen_path.width(width_path)
 
+        self.pen_trace2 = turtle.Turtle()
+        self.pen_trace2.left(90)
+        self.pen_trace2.speed(speed_trace)
+        self.pen_trace2.width(width_trace)
+        self.pen_trace2.color(color_trace_round2)
+
+        self.pen_trace1 = turtle.Turtle()
+        self.pen_trace1.left(90)
+        self.pen_trace1.speed(speed_trace)
+        self.pen_trace1.width(width_trace)
+        self.pen_trace1.color(color_trace_round1)
+
         self.pen_goal = turtle.Turtle()
         self.pen_goal.color(color_goal)
         self.pen_goal.hideturtle()
         self.pen_goal.width(width_goal)
 
-        self.draw_background(dim_size)
 
 
 
@@ -91,11 +99,6 @@ class Visual(object):
 
 
 
-    def reset(self):
-        self.pen_trace.pu()
-        self.pen_trace.home()
-        self.pen_trace.left(90)
-
     def draw_wall(self, dist):
         '''
          draw wall by given distnace
@@ -119,17 +122,17 @@ class Visual(object):
 
 
     def draw_trace(self, angle, step, round):
-        if round == 2:
-            self.pen_trace.color(color_trace_round2)
+        if round == 1:
+            self.pen_trace1.right(angle)
+            self.pen_trace1.fd(sq_size * step)
         else:
-            self.pen_trace.color(color_trace_round1)
-        self.pen_trace.right(angle)
-        self.pen_trace.fd(sq_size * step)
+            self.pen_trace2.right(angle)
+            self.pen_trace2.fd(sq_size * step)
 
     def draw_walls(self, detections):
         # move pen_wall to robot state
-        pos = self.pen_trace.pos()
-        head = self.pen_trace.heading()
+        pos = self.pen_trace1.pos()
+        head = self.pen_trace1.heading()
         self.pen_wall.pu()
         self.pen_wall.goto(pos)
         self.pen_wall.seth(head)
