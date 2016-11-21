@@ -1,5 +1,7 @@
 import numpy as np
 import random
+from visual import Visual
+from copy import deepcopy
 
 from map import Map
 # global dictionaries for robot movement and sensing
@@ -27,6 +29,10 @@ max_step = 3
 
 # tuning factors
 beta = 0.
+
+# perform drawing if True, no drawing otherwise
+ifdraw = True
+
 
 #helper functions:
 def dist(pos1, pos2):
@@ -71,6 +77,11 @@ class Robot(object):
         self.run = 1
         self.step = 0
         self.score = 0
+        self.path = []
+        self.path_previous = []
+
+        # drawing
+        self.draw = Visual(maze_dim)
 
     def reset(self):
         '''
@@ -80,6 +91,8 @@ class Robot(object):
         self.location = [0, 0]
         self.record = []
         self.socre = 0
+        self.draw.reset()
+
 
 
 
@@ -137,6 +150,8 @@ class Robot(object):
                     result = [[x, y], [x + 1, y], [x + 1, y - 1], [x, y - 1]]
                     if x != self.goal[0][0] or y != self.goal[0][1]:
                         self.goal_changed = True
+                        if ifdraw:
+                            self.draw.draw_goal(result)
                         self.finish_count = 4
                         self.finishing = False
                     return result
@@ -155,8 +170,15 @@ class Robot(object):
                 changed = True
             # print update
         if changed:
+            if ifdraw:
+                self.draw.draw_walls(sensors)
             self.goal = self.update_goal()
             self.update_value(self.goal, cost)
+            self.path = self.find_path(self.start, self.goal)
+            if ifdraw:
+                if self.path != self.path_previous:
+                    self.draw.draw_path(self.path)
+                    self.path_previous = deepcopy(self.path)
 
 
         if self.is_reach_goal():
@@ -336,13 +358,6 @@ class Robot(object):
 
 
 
-    def solve_path(self):
-        '''
-        find the shortest path from starting to the goal position
-        '''
-        path = self.find_path(self.start, self.goal)
-        return path
-
     def find_path(self, start, goal):
         '''
         find path from start location to the target location, base on the value table
@@ -458,13 +473,12 @@ class Robot(object):
         Or it moves back based on its previous moves to the starting point, until it on the path.
         '''
         self.reverse = False
-        path = self.find_path(self.start, self.goal)
-        if self.location not in path:
+        if self.location not in self.path:
             move = self.reverse_move()
         else:
             if random.random() < beta:
                 return self.random_walk()
-            move = self.find_next_move(self.location, path)
+            move = self.find_next_move(self.location, self.path)
         
         return move
 
@@ -511,12 +525,9 @@ class Robot(object):
         else:
             rotation, movement = self.policy_walk()
         self.execute(rotation, movement)
-        # print self.record
-        # print ' '
-        #print self.map.is_goal([4, 4])
-        # print self.record
-        # print self.find_path(start, self.goal)
-        #print self.goal[0]
+        if ifdraw:
+            self.draw.draw_trace(rotation, movement, self.run)
+
 
 
         self.score += 1

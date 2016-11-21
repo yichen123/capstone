@@ -37,7 +37,6 @@ if __name__ == '__main__':
         # Set the robot in the start position. Note that robot position
         # parameters are independent of the robot itself.
         robot_pos = {'location': [0, 0], 'heading': 'up'}
-        testrobot.reset()
 
         run_active = True
         hit_goal = False
@@ -56,11 +55,13 @@ if __name__ == '__main__':
                        for heading in dir_sensors[robot_pos['heading']]]
             rotation, movement = testrobot.next_move(sensing)
 
+
             # check for a reset
             if (rotation, movement) == ('Reset', 'Reset'):
                 if run == 0 and hit_goal:
                     run_active = False
                     runtimes.append(total_time)
+                    testrobot.reset()
                     print "Ending first run. Starting next run."
                     break
                 elif run == 0 and not hit_goal:
@@ -122,3 +123,4 @@ if __name__ == '__main__':
     # Report score if robot is successful.
     if len(runtimes) == 2:
         print "Task complete! Score: {:4.3f}".format(runtimes[1] + train_score_mult*runtimes[0])
+testrobot.draw.window.exitonclick()
