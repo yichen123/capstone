@@ -31,7 +31,7 @@ max_step = 3
 beta = 0.
 
 # perform drawing if True, no drawing otherwise
-ifdraw = True
+ifdraw = False
 
 
 #helper functions:
@@ -81,7 +81,8 @@ class Robot(object):
         self.path_previous = []
 
         # drawing
-        self.draw = Visual(maze_dim)
+        if ifdraw:
+            self.draw = Visual(maze_dim)
 
     def reset(self):
         '''

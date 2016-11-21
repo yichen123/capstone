@@ -123,4 +123,3 @@ if __name__ == '__main__':
     # Report score if robot is successful.
     if len(runtimes) == 2:
         print "Task complete! Score: {:4.3f}".format(runtimes[1] + train_score_mult*runtimes[0])
-testrobot.draw.window.exitonclick()
