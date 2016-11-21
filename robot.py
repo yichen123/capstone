@@ -31,7 +31,7 @@ max_step = 3
 beta = 0.
 
 # perform drawing if True, no drawing otherwise
-ifdraw = False
+ifdraw = True
 
 
 #helper functions:
