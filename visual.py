@@ -2,9 +2,11 @@ import turtle
 
 sq_size = 20
 
+turtle_size = [2, 2, 2]
+
 width_wall = 2
-width_trace = sq_size / 4
-width_path = sq_size / 2
+width_trace = sq_size / 2
+width_path = sq_size / 4
 width_goal = sq_size
 width_background = 0
 
@@ -43,14 +45,17 @@ class Visual(object):
         self.pen_trace2 = turtle.Turtle()
         self.pen_trace2.left(90)
         self.pen_trace2.speed(speed_trace)
-        self.pen_trace2.width(width_trace)
+        self.pen_trace2.width(width_goal)
         self.pen_trace2.color(color_trace_round2)
+        self.pen_trace2.turtlesize(turtle_size[0], turtle_size[1], turtle_size[2])
 
         self.pen_trace1 = turtle.Turtle()
         self.pen_trace1.left(90)
         self.pen_trace1.speed(speed_trace)
         self.pen_trace1.width(width_trace)
         self.pen_trace1.color(color_trace_round1)
+        self.pen_trace1.turtlesize(turtle_size[0], turtle_size[1], turtle_size[2])
+
 
         self.pen_goal = turtle.Turtle()
         self.pen_goal.color(color_goal)
