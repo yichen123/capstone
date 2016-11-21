@@ -91,7 +91,6 @@ class Robot(object):
         self.location = [0, 0]
         self.record = []
         self.socre = 0
-        self.draw.reset()
 
 
 
