@@ -2,11 +2,14 @@
 ## Plot and Navigate a Virtual Maze
 
 
-This is the capstone project for Machine Learning Nanodegree in Udacity. We built a planner system that guide the robot to find the shortest path in a give Maze without outside helps, our planner only know the Maze's size and the sensor signals in each run.
+This is the capstone project for Machine Learning Nanodegree in Udacity. We built a planner system that guides the robot to find the shortest path in a give Maze without outside helps, our planner only knows the Maze's size and the sensor signals in each turn.
 
 Written by: __Chen YI__  
 Email: 1021869638@qq.com
 
+## self-make dependcies:
+* visual.py
+* map.py
 
 ## How to run it? 
 
@@ -18,6 +21,4 @@ inside the robot.py
 * set `ifdraw = True` if the visualizaiton is needed
 * set `method_2 = True` to use the scond method that mentioned in the report
 
-## self-make dependcies:
-* visual.py
-* map.py
+
