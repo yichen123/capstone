@@ -48,7 +48,7 @@ beta = 0.
 ifdraw = True
 
 # choosing mode between 1-shortest_first, 2-goal_first
-method_2 = False
+method_2 = True
 
 #helper functions:
 def dist(pos1, pos2):
@@ -406,6 +406,11 @@ class Robot(object):
         y = start[1]
         while [x, y] not in goal:
             move = self.find_best_neighbour([x, y], 3)[0]
+            try:
+                move[1] == 0
+            except Exception as e:
+                print 'Maze is bad, no route to the goal'
+                exit(0)
             for i in range(move[1]):
                 x += dir_move[move[0]][0]
                 y += dir_move[move[0]][1]
