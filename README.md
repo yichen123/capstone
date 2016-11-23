@@ -14,7 +14,7 @@ Email: 1021869638@qq.com
 * bad_maze01
 * bad_maze02
 
-two bad-mazes to demenstrate the corner corner cases that have not be restricted by the problem setting.
+two bad-mazes to demenstrate the corner cases that have not be restricted by the problem setting.
 
 ## How to run it? 
 
