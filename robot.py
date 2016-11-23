@@ -5,7 +5,7 @@ the output will be [rotation, movement] move command
 *
 *   set ifdraw = True if the visualizaiton is needed
 *
-*   set path_first = True if use the scond method that mentioned in the report
+*   set method_2 = True to use the scond method that mentioned in the report
 *
 * @writen by Chen YI
 * @email is 1021869638@qq.com
@@ -48,7 +48,7 @@ beta = 0.
 ifdraw = True
 
 # choosing mode between 1-shortest_first, 2-goal_first
-path_first = False
+method_2 = False
 
 #helper functions:
 def dist(pos1, pos2):
@@ -195,7 +195,7 @@ class Robot(object):
                 self.draw.draw_walls(sensors)
             self.update_goal()
             self.update_value(self.goal, cost)
-            if path_first:
+            if method_2:
                 self.path = self.find_path(self.location, self.goal)
             else:
                 self.path = self.find_path(self.start, self.goal)
@@ -501,7 +501,7 @@ class Robot(object):
                 # self.get_map()
                 rotation, movement = self.finish_moves()
                 if [rotation, movement] == [0, 0]:
-                    if path_first:
+                    if method_2:
                         if self.goto_start == False:
                             self.shortest = self.find_path(self.start, self.goal)
                             if self.shortest == self.shortest_previous:
