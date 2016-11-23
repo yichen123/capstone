@@ -45,10 +45,10 @@ max_step = 3
 beta = 0.
 
 # perform visualization if True, no visualization otherwise
-ifdraw = True
+ifdraw = False
 
 # choosing mode between 1-shortest_first, 2-goal_first
-method_2 = True
+method_2 = False
 
 #helper functions:
 def dist(pos1, pos2):
