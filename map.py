@@ -23,6 +23,11 @@ def dist(pos1, pos2):
     dy = pos1[1] - pos2[1]
     return sqrt(dx ** 2 + dy ** 2)
 
+def pos_ahead(location, direction):
+    '''
+    helper function
+    '''
+    return [location[0] + dir_move[direction][0], location[1] + dir_move[direction][1]]
 
 class Map(object):
     def __init__(self, maze_dim):
@@ -47,6 +52,9 @@ class Map(object):
 
 
     def update_map(self, robot_location, direction, distance):
+        '''
+        update the wall based on the parameters given
+        '''
         location = self.pos_map(robot_location)
         location1 = [0, 0]
         changed = False
@@ -61,14 +69,15 @@ class Map(object):
         return changed
 
 
-    def pos_ahead(self, location, direction):
-        return [location[0] + dir_move[direction][0], location[1] + dir_move[direction][1]]
+
 
 
     def is_valid_move(self, robot_location, direction):
-        # if the wall is next to the robot in that direction, return false
+        '''
+        if the wall is next to the robot in that direction, return false
+        '''
         location = self.pos_map(robot_location)
-        location1 = self.pos_ahead(location, direction)
+        location1 = pos_ahead(location, direction)
         if 0 > location1[1] or self.dim <= location1[1] or 0 > location1[0] or self.dim <= location1[0]:
             return False
         if self.map[location1[1]][location1[0]] == 1:
@@ -78,9 +87,10 @@ class Map(object):
 
 
     def is_goal(self, maz_location):
-        # see if that location is in the corner of a 3 * 3 square of 0's
-
-        # return False if not, and True otherwise
+        '''
+        see if that location is in the corner of a 3 * 3 square of 0's
+        return False if not, and True otherwise
+        '''
         location = self.pos_map(maz_location)
         #print location, maz_location
         # print location
@@ -97,6 +107,9 @@ class Map(object):
         return True
 
     def is_connect(self, pos1, pos2):
+        '''
+        check if there is any wall between pos1 and pos2
+        '''
         location1 = self.pos_map(pos1)
         location2 = self.pos_map(pos2)
         location = [(location1[0] + location2[0]) / 2, (location1[1] + location2[1]) / 2]
