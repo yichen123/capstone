@@ -6,9 +6,15 @@ This is the capstone project for Machine Learning Nanodegree in Udacity. We buil
 Written by: __Chen YI__  
 Email: 1021869638@qq.com
 
-## Self-make dependcies:
+## Self-made dependcies:
 * `visual.py`, this class is for visualization
 * `map.py`, this class is for storing wall information.
+
+## Self-made mazes:
+* bad_maze01
+* bad_maze02
+
+two bad-mazes to demenstrate the corner corner cases that have not be restricted by the problem setting.
 
 ## How to run it? 
 
