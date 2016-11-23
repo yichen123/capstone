@@ -4,15 +4,21 @@
 
 ## Capstone Project for Machine Learning Nanodegree in Udacity
 
-<\br>
-<\br>
-</br>
-  
-Written by: __Chen YI__
-_Email: 1021869638@qq.com_
+## Written by: __Chen YI__
+
+## Email: 1021869638@qq.com
 
 
+## How to run it? 
 
-->**Abstraction**<-
+* using terminal command: `python tester.py mazefile` to run it
+* using terminal command: `python showmaze.py mazefile` to see the maze plotting
 
-_In this report, we will be building up a planner that routes the robot to find the shortest path to the goal in a given Maze. We will see the implementation of some key features of the planner, especially the algorithm **Value Table** it has been used. We will also see the running results of the planner, some refinements and discussions on some of the result._
+### settings
+inside the robot.py
+* set ifdraw = True if the visualizaiton is needed
+* set method_2 = True to use the scond method that mentioned in the report
+
+### self-make dependcies:
+* visual.py
+* map.py
