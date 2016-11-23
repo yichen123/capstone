@@ -4,9 +4,11 @@
 
 ## Capstone Project for Machine Learning Nanodegree in Udacity
 
-   
-    
-->Written by: __Chen YI__
+<\br>
+<\br>
+</br>
+  
+Written by: __Chen YI__
 _Email: 1021869638@qq.com_
 
 
